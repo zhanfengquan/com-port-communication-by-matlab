@@ -1,0 +1,49 @@
+(function() {
+  // 改成你的用户ID，看个人空间网址里的数字
+  const UID = 37144192
+
+  async function main() {
+    let res = []
+    let page = 1
+    while (true) {
+      let followingList = await getFollowingList(page)
+      if (followingList.length === 0) {
+        break
+      }
+
+      for (let following of followingList) {
+        res.push({
+          name: following.uname,
+          time: formatDate(new Date(following.mtime * 1000))
+        })
+      }
+
+      page++
+    }
+    console.table(res)
+  }
+
+  async function getFollowingList(page) {
+    let rsp = await fetch(`https://api.bilibili.com/x/relation/followings?vmid=${UID}&pn=${page}&ps=50`, {
+      credentials: 'include'
+    })
+    rsp = await rsp.json()
+    if (rsp.code != 0) {
+      console.warn(rsp.message)
+      return []
+    }
+    return rsp.data.list
+  }
+
+  function formatDate(date) {
+    let year = date.getFullYear()
+    let month = ('00' + (date.getMonth() + 1)).slice(-2)
+    let day = ('00' + date.getDate()).slice(-2)
+    let hour = ('00' + date.getHours()).slice(-2)
+    let min = ('00' + date.getMinutes()).slice(-2)
+    let sec = ('00' + date.getSeconds()).slice(-2)
+    return `${year}-${month}-${day} ${hour}:${min}:${sec}`
+  }
+
+  main()
+})()
